@@ -63,5 +63,5 @@ report_agent = Agent(
 
 @tool
 def report_agent_as_tool(query="No prompt found in input, please guide customer to create a json payload with prompt key") -> str:
-    """Initialize the Report agent"""
+    """Generates summary reports in PDF format with the outputs from terrain analysis, layout design, and simulation tasks for wind farm development projects."""
     return report_agent(query)

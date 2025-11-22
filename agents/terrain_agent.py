@@ -51,5 +51,5 @@ terrain_agent = Agent(
 
 @tool  # This decorator transforms a Python function into a Strands tool.
 def terrain_agent_as_tool(query="No prompt found in input, please guide customer to create a json payload with prompt key") -> str:
-    """Initialize the terrain analysis agent if called from a notebook, return agent response if called directly or as a tool."""
+    """Performs terrain analysis in wind farm projects for a given location with latitude and longitude coordinates."""
     return terrain_agent(query)

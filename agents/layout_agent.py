@@ -101,5 +101,5 @@ layout_agent = Agent(
 
 @tool
 def layout_agent_as_tool(query="No prompt found in input, please guide customer to create a json payload with prompt key") -> str:
-    """Initialize the layout agent"""
+    """Performs layout generation/design for wind farms for given projects with the outputs from terrain analysis for a given location."""
     return layout_agent(query)
