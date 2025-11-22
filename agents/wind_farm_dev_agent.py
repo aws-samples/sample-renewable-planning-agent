@@ -63,7 +63,7 @@ bedrock_model = BedrockModel(
 )
 
 callback_handler = PrintingCallbackHandler()
-if disable_callback_handler:
+if os.getenv("DISABLE_CALLBACK_HANDLER"):
     callback_handler = None
 
 agent = Agent(
