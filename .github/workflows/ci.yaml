@@ -10,6 +10,8 @@ jobs:
     env:
       IMAGE_TAG: ${{ github.sha }}
       ECR_URI: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+      AGENT_IMAGE: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/wind-dev-agent
+      TOOL_IMAGE: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/wind-tools-lambda-image
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -22,14 +24,28 @@ jobs:
       - uses: aws-actions/setup-sam@v2
       - run: aws ecr create-repository --repository-name wind-dev-agent --region ${{ vars.AWS_REGION }} || true
       - run: aws ecr create-repository --repository-name wind-tools-lambda-image --region ${{ vars.AWS_REGION }} || true
-      - run: aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_URI
-      - id: build-agent
+      - run: aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_URI      
+      - name: Build and push agent image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: $AGENT_IMAGE:$IMAGE_TAG,$AGENT_IMAGE:latest
+          context: ./agents
+          platforms: linux/arm64
+          cache-from: type=registry,ref=$AGENT_IMAGE:buildcache
+          cache-to: type=registry,ref=$AGENT_IMAGE:buildcache,mode=max
+    
+      - name: Build and push tool image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: $TOOL_IMAGE:$IMAGE_TAG,$TOOL_IMAGE:latest
+          context: ./mcp_tools
+          platforms: linux/arm64
+          provenance: false
+          cache-from: type=registry,ref=$TOOL_IMAGE:buildcache
+          cache-to: type=registry,ref=$TOOL_IMAGE:buildcache,mode=max
+
+      - name: Deploy SAM stack
         run: |
-          docker buildx build --platform linux/arm64 -t $ECR_URI/wind-dev-agent:$IMAGE_TAG --push ./agents
-          echo "agent_image=$ECR_URI/wind-dev-agent:$IMAGE_TAG" >> $GITHUB_OUTPUT
-      - id: build-tool
-        run: |
-          docker buildx build --platform linux/arm64 -t $ECR_URI/wind-tools-lambda-image:$IMAGE_TAG --provenance=false --push ./mcp_tools
-          echo "tool_image=$ECR_URI/wind-tools-lambda-image:$IMAGE_TAG" >> $GITHUB_OUTPUT
-      - run: |
-          sam deploy --parameter-overrides ParameterKey="AgentImageUri",ParameterValue="${{ steps.build-agent.outputs.agent_image }}" ParameterKey=ToolImageUri,ParameterValue="${{ steps.build-tool.outputs.tool_image }}" --no-confirm-changeset --no-fail-on-empty-changeset
+          sam deploy --parameter-overrides ParameterKey="AgentImageUri",ParameterValue="$AGENT_IMAGE:$IMAGE_TAG" ParameterKey=ToolImageUri,ParameterValue="$TOOL_IMAGE:$IMAGE_TAG" --no-confirm-changeset --no-fail-on-empty-changeset
