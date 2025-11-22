@@ -5,11 +5,11 @@ Description: SAM template for lambda function
 Parameters:
   ToolImageUri:
     Type: String
-    Description: ECR image URI for the MCP tool target lambda function - used by agentcore gateway deployment
+    Description: ECR image URI for the MCP tool target lambda function - used by AgentCore gateway deployment
     Default: "REPLACED_BY_CI"
   AgentImageUri:
     Type: String
-    Description: ECR image URI for the agent - used by agentcore runtime deployment
+    Description: ECR image URI for the agent - used by AgentCore runtime deployment
     Default: "REPLACED_BY_CI"
 
 Resources:
@@ -230,6 +230,112 @@ Resources:
       Type: String
       Name: /wind-farm-assistant/use-s3-storage
       Value: "true"
+
+  SSMParameterAgentStorageBucketName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Name: /wind-farm-assistant/s3-bucket-name
+      Value: !Ref WindAgentsStorageBucket
+
+  WindAgentsStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "wind-dev-agent-${AWS::AccountId}-storage"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+
+  WebApplicationInfrastructureRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: ecs.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+        - AmazonECSInfrastructureRoleforExpressGatewayServices
+
+  WebApplicationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - AmazonECSTaskExecutionRolePolicy
+
+  WebApplicationTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - AmazonECSTaskExecutionRolePolicy
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:Invoke*
+                - bedrock-agentcore:*
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:HeadObject
+                - s3:PutObject
+                - s3:DeleteObject
+                - s3:ListBucket
+              Resource:
+                - !Sub "arn:aws:s3:::wind-dev-agent-${AWS::AccountId}-storage/*"
+                - !Sub "arn:aws:s3:::wind-dev-agent-${AWS::AccountId}-storage"
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:GetParametersByPath
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/wind-farm-assistant/*"
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - aws-marketplace:Subscribe
+                - aws-marketplace:Unsubscribe
+                - aws-marketplace:ViewSubscriptions
+              Resource: "*"  
+
+  WebApplication:
+    Type: AWS::ECS::ExpressGatewayService
+    Properties:
+      Cpu: 1024
+      Memory: 2048
+      ExecutionRoleArn: !GetAtt WebApplicationExecutionRole.Arn
+      InfrastructureRoleArn: !GetAtt WebApplicationInfrastructureRole.Arn
+      TaskRoleArn: !GetAtt WebApplicationTaskRole.Arn
+      HealthCheckPath: /health
+      PrimaryContainer: 
+        ContainerPort: 8080
+        Image: public.ecr.aws/d0w5h1n8/wind/wind-farm-app:latest
+      ScalingTarget: 
+        MinTaskCount: 1
+        MaxTaskCount: 1
+      ServiceName: wind-farm-app-service
+      Tags: 
+        - Key: Name
+          Value: wind-farm-app-service
 
 Outputs:
   GatewayUrl:
