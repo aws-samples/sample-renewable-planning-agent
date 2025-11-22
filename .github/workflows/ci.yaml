@@ -9,6 +9,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     env:
       IMAGE_TAG: ${{ github.sha }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
       ECR_URI: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
       AGENT_IMAGE: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/wind-dev-agent
       TOOL_IMAGE: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/wind-tools-lambda-image
@@ -22,30 +23,30 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ROLE_NAME }}
       - uses: actions/setup-python@v3
       - uses: aws-actions/setup-sam@v2
-      - run: aws ecr create-repository --repository-name wind-dev-agent --region ${{ vars.AWS_REGION }} || true
-      - run: aws ecr create-repository --repository-name wind-tools-lambda-image --region ${{ vars.AWS_REGION }} || true
-      - run: aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_URI      
+      - run: aws ecr create-repository --repository-name wind-dev-agent --region $AWS_REGION || true
+      - run: aws ecr create-repository --repository-name wind-tools-lambda-image --region $AWS_REGION || true
+      - run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI      
       - name: Build and push agent image
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: $AGENT_IMAGE:$IMAGE_TAG,$AGENT_IMAGE:latest
+          tags: "${{env.AGENT_IMAGE}}:${{env.IMAGE_TAG}},${{env.AGENT_IMAGE}}:latest"
           context: ./agents
           platforms: linux/arm64
-          cache-from: type=registry,ref=$AGENT_IMAGE:buildcache
-          cache-to: type=registry,ref=$AGENT_IMAGE:buildcache,mode=max
+          cache-from: type=registry,ref=${{env.AGENT_IMAGE}}:cache
+          cache-to: type=registry,ref=${{env.AGENT_IMAGE}}:cache,mode=max
     
       - name: Build and push tool image
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: $TOOL_IMAGE:$IMAGE_TAG,$TOOL_IMAGE:latest
+          tags: "${{env.TOOL_IMAGE}}:${{env.IMAGE_TAG}},${{env.TOOL_IMAGE}}:latest"
           context: ./mcp_tools
           platforms: linux/arm64
           provenance: false
-          cache-from: type=registry,ref=$TOOL_IMAGE:buildcache
-          cache-to: type=registry,ref=$TOOL_IMAGE:buildcache,mode=max
+          cache-from: type=registry,ref=${{env.TOOL_IMAGE}}:cache
+          cache-to: type=registry,ref=${{env.TOOL_IMAGE}}:cache,mode=max
 
       - name: Deploy SAM stack
         run: |
-          sam deploy --parameter-overrides ParameterKey="AgentImageUri",ParameterValue="$AGENT_IMAGE:$IMAGE_TAG" ParameterKey=ToolImageUri,ParameterValue="$TOOL_IMAGE:$IMAGE_TAG" --no-confirm-changeset --no-fail-on-empty-changeset
+          sam deploy --parameter-overrides ParameterKey="AgentImageUri",ParameterValue="${{env.AGENT_IMAGE}}:${{env.IMAGE_TAG}}" ParameterKey=ToolImageUri,ParameterValue="${{env.TOOL_IMAGE}}:${{env.IMAGE_TAG}}" --no-confirm-changeset --no-fail-on-empty-changeset
