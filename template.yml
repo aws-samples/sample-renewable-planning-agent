@@ -255,8 +255,8 @@ Resources:
           Principal:
             Service: ecs.amazonaws.com
           Action: sts:AssumeRole
-      Policies:
-        - AmazonECSInfrastructureRoleforExpressGatewayServices
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices
 
   WebApplicationExecutionRole:
     Type: AWS::IAM::Role
@@ -267,8 +267,8 @@ Resources:
             Principal:
               Service: ecs-tasks.amazonaws.com
             Action: sts:AssumeRole
-      Policies:
-        - AmazonECSTaskExecutionRolePolicy
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
   WebApplicationTaskRole:
     Type: AWS::IAM::Role
@@ -280,42 +280,43 @@ Resources:
               Service: ecs-tasks.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - AmazonECSTaskExecutionRolePolicy
-        - Version: 2012-10-17
-          Statement:
-            - Effect: Allow
-              Action:
-                - bedrock:Invoke*
-                - bedrock-agentcore:*
-              Resource: "*"
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:HeadObject
-                - s3:PutObject
-                - s3:DeleteObject
-                - s3:ListBucket
-              Resource:
-                - !Sub "arn:aws:s3:::wind-dev-agent-${AWS::AccountId}-storage/*"
-                - !Sub "arn:aws:s3:::wind-dev-agent-${AWS::AccountId}-storage"
-            - Effect: Allow
-              Action:
-                - ssm:GetParameter
-                - ssm:GetParameters
-                - ssm:GetParametersByPath
-              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/wind-farm-assistant/*"
-            - Effect: Allow
-              Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource: "*"
-            - Effect: Allow
-              Action:
-                - aws-marketplace:Subscribe
-                - aws-marketplace:Unsubscribe
-                - aws-marketplace:ViewSubscriptions
-              Resource: "*"  
+        - PolicyName: WebApplicationTaskPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:Invoke*
+                  - bedrock-agentcore:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:HeadObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::wind-dev-agent-${AWS::AccountId}-storage/*"
+                  - !Sub "arn:aws:s3:::wind-dev-agent-${AWS::AccountId}-storage"
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:GetParametersByPath
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/wind-farm-assistant/*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - aws-marketplace:Subscribe
+                  - aws-marketplace:Unsubscribe
+                  - aws-marketplace:ViewSubscriptions
+                Resource: "*"  
 
   WebApplication:
     Type: AWS::ECS::ExpressGatewayService
