@@ -1,0 +1,9 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "wind-dev-agent"
+resolve_s3 = true
+resolve_image_repos = true
+s3_prefix = "wind-tools"
+region = "us-west-2"
+capabilities = "CAPABILITY_IAM"

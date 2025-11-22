@@ -1,0 +1,37 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .responsive-padding {
+    padding: 12px !important;
+  }
+  
+  .responsive-text {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-padding {
+    padding: 8px !important;
+  }
+  
+  .responsive-text {
+    font-size: 11px !important;
+  }
+}

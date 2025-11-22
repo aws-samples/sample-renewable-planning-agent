@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: SAM template for lambda function
+
+Parameters:
+  ToolImageUri:
+    Type: String
+    Description: ECR image URI for the MCP tool target lambda function - used by agentcore gateway deployment
+    Default: "REPLACED_BY_CI"
+  AgentImageUri:
+    Type: String
+    Description: ECR image URI for the agent - used by agentcore runtime deployment
+    Default: "REPLACED_BY_CI"
+
+Resources:
+  WindFarmToolLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      ImageUri: !Ref ToolImageUri
+      PackageType: Image
+      Timeout: 300
+      MemorySize: 2048
+      Architectures:
+        - arm64
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:GetParametersByPath
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
+
+  GatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: bedrock-agentcore.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AgentCoreGatewayExecutionPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt WindFarmToolLambda.Arn
+
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:*
+                  - bedrock:*
+                  - iam:PassRole
+                  - secretsmanager:GetSecretValue
+                  - kms:Decrypt
+                Resource: "*"
+
+  WindAgentCoreGateway:
+    Type: AWS::BedrockAgentCore::Gateway
+    Properties:
+      AuthorizerType: AWS_IAM
+      Description: AgentCore Gateway with AWS Lambda target type
+      ExceptionLevel: DEBUG
+      Name: wind-farm-mcp-tools
+      ProtocolType: MCP
+      RoleArn: !GetAtt GatewayRole.Arn
+
+  WindAgentCoreGatewayLambdaTarget:
+    Type: AWS::BedrockAgentCore::GatewayTarget
+    Properties:
+      CredentialProviderConfigurations:
+        - CredentialProviderType: GATEWAY_IAM_ROLE
+      Description: Wind Development Tools Lambda Target
+      GatewayIdentifier: !GetAtt WindAgentCoreGateway.GatewayIdentifier
+      Name: wind-farm-tools-lambda
+      TargetConfiguration:
+        Mcp:
+          Lambda:
+            LambdaArn: !GetAtt WindFarmToolLambda.Arn
+            ToolSchema:
+              InlinePayload:
+                - Name: "get_wind_conditions"
+                  Description: "Fetches wind data from NREL API for a specific location and year. Returns: Dictionary with the wind conditions for the location."
+                  InputSchema:
+                    Type: "object"
+                    Properties:
+                      latitude:
+                        Type: "number"
+                        Description: "Latitude coordinate of the location."
+                      longitude:
+                        Type: "number"
+                        Description: "Longitude coordinate of the location."
+                      year:
+                        Type: "number"
+                        Description: "Year for wind data (default: 2023)."
+                    Required:
+                      - "latitude"
+                      - "longitude"
+
+  RuntimeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: bedrock-agentcore.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyName: AgentCoreRuntimePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:Retrieve
+                  - bedrock:RetrieveAndGenerate
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - aws-marketplace:Subscribe
+                  - aws-marketplace:ViewSubscriptions
+                  - aws-marketplace:Unsubscribe
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/*"
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogStreams
+                  - logs:CreateLogGroup
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*"
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                  - xray:GetSamplingRules
+                  - xray:GetSamplingTargets
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:UpdateSecret
+                  - secretsmanager:CreateSecret
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "cloudwatch:namespace": "bedrock-agentcore"
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:InvokeGateway
+                Resource:
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:gateway/*"
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetWorkloadAccessToken
+                  - bedrock-agentcore:GetWorkloadAccessTokenForJWT
+                  - bedrock-agentcore:GetWorkloadAccessTokenForUserId
+                Resource:
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:GetParametersByPath
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
+
+  Runtime:
+    Type: AWS::BedrockAgentCore::Runtime
+    Properties:
+      AgentRuntimeName: wind_dev_agent
+      AgentRuntimeArtifact:
+        ContainerConfiguration:
+          ContainerUri: !Ref AgentImageUri
+      EnvironmentVariables:
+        DISABLE_CALLBACK_HANDLER: "1"
+        AWS_REGION: !Ref AWS::Region
+        AWS_DEFAULT_REGION: !Ref AWS::Region
+      NetworkConfiguration:
+        NetworkMode: PUBLIC
+      RoleArn: !GetAtt RuntimeRole.Arn
+
+  SSMParameterAgentRuntimeARN:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Name: /wind-farm-assistant/agentcore-runtime-arn
+      Value: !GetAtt Runtime.AgentRuntimeArn
+
+  SSMParameterGatewayUrl:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Name: /wind-farm-assistant/gateway_url
+      Value: !GetAtt WindAgentCoreGateway.GatewayUrl
+
+  SSMParameterAgentStorageUseS3:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Name: /wind-farm-assistant/use-s3-storage
+      Value: "true"
+
+Outputs:
+  GatewayUrl:
+    Description: "Bedrock AgentCore Gateway URL"
+    Value: !GetAtt WindAgentCoreGateway.GatewayUrl
+  RuntimeArn:
+    Value: !GetAtt Runtime.AgentRuntimeArn
+    Description: "AgentCore Runtime Arn"

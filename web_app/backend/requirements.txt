@@ -1,0 +1,6 @@
+boto3
+requests
+markdown
+typing
+fastapi
+uvicorn[standard]
