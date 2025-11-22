@@ -6,14 +6,14 @@ from strands import Agent, tool
 from strands.tools.executors import SequentialToolExecutor
 from strands.handlers.callback_handler import PrintingCallbackHandler
 
-from agents.terrain_agent import terrain_agent_as_tool
-from agents.layout_agent import layout_agent_as_tool
-from agents.simulation_agent import simulation_agent_as_tool
-from agents.report_agent import report_agent_as_tool
-from agents.tools.wind_farm_dev_tools import generate_project_id, validate_layout_quality, get_project_status, load_layout_image
-from agents.tools.shared_tools import load_project_data, get_latest_images, analyze_simulation_results
-from agents.prompts.development_agent_prompt import DEVELOPMENT_AGENT_SYSTEM_PROMPT
-from agents.logging_config import get_logger
+from terrain_agent import terrain_agent_as_tool
+from layout_agent import layout_agent_as_tool
+from simulation_agent import simulation_agent_as_tool
+from report_agent import report_agent_as_tool
+from tools.wind_farm_dev_tools import generate_project_id, validate_layout_quality, get_project_status, load_layout_image
+from tools.shared_tools import load_project_data, get_latest_images, analyze_simulation_results
+from prompts.development_agent_prompt import DEVELOPMENT_AGENT_SYSTEM_PROMPT
+from logging_config import get_logger
 
 # Used for AgentCore
 from bedrock_agentcore.runtime import BedrockAgentCoreApp

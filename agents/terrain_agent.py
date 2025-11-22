@@ -5,11 +5,11 @@ from strands.models import BedrockModel
 from strands import Agent, tool
 from strands.handlers.callback_handler import PrintingCallbackHandler
 
-from agents.tools.terrain_tools import get_unbuildable_areas
-from agents.prompts.terrain_prompt import TERRAIN_AGENT_SYSTEM_PROMPT
-from agents.tools.shared_tools import get_turbine_specs
-from agents.tools.knowledge_base_tools import query_knowledge_base
-from agents.logging_config import get_logger
+from tools.terrain_tools import get_unbuildable_areas
+from prompts.terrain_prompt import TERRAIN_AGENT_SYSTEM_PROMPT
+from tools.shared_tools import get_turbine_specs
+from tools.knowledge_base_tools import query_knowledge_base
+from logging_config import get_logger
 
 # Configure logging
 logger = get_logger('terrain_agent')

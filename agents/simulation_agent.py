@@ -10,11 +10,11 @@ from strands.handlers.callback_handler import PrintingCallbackHandler
 from strands.models import BedrockModel
 from strands import Agent, tool
 
-from agents.tools.simulation_tools import run_wake_simulation, generate_charts_and_csv
-from agents.prompts.simulation_prompt import SIMULATION_AGENT_SYSTEM_PROMPT
-from agents.tools.mcp_utils import get_mcp_config, fetch_access_token, create_streamable_http_transport, get_full_tools_list
-from agents.tools.streamable_http_sigv4 import streamablehttp_client_with_sigv4
-from agents.logging_config import get_logger
+from tools.simulation_tools import run_wake_simulation, generate_charts_and_csv
+from prompts.simulation_prompt import SIMULATION_AGENT_SYSTEM_PROMPT
+from tools.mcp_utils import get_mcp_config, fetch_access_token, create_streamable_http_transport, get_full_tools_list
+from tools.streamable_http_sigv4 import streamablehttp_client_with_sigv4
+from logging_config import get_logger
 
 # Configure logging
 logger = get_logger('simulation_agent')

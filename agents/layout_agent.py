@@ -9,18 +9,18 @@ from strands.handlers.callback_handler import PrintingCallbackHandler
 
 from strands.models import BedrockModel
 from strands import Agent, tool
-from agents.tools.streamable_http_sigv4 import streamablehttp_client_with_sigv4
+from tools.streamable_http_sigv4 import streamablehttp_client_with_sigv4
 
-from agents.tools.layout_tools import (
+from tools.layout_tools import (
     create_grid_layout, create_offset_grid_layout, create_spiral_layout,
     create_greedy_layout, explore_alternative_sites,
     relocate_conflicting_turbines, relocate_turbines_manually,
     save_layout, load_turbine_layout
 )
-from agents.prompts.layout_prompt import LAYOUT_AGENT_SYSTEM_PROMPT
-from agents.tools.shared_tools import get_turbine_specs
-from agents.tools.mcp_utils import get_mcp_config, fetch_access_token, create_streamable_http_transport, get_full_tools_list
-from agents.logging_config import get_logger
+from prompts.layout_prompt import LAYOUT_AGENT_SYSTEM_PROMPT
+from tools.shared_tools import get_turbine_specs
+from tools.mcp_utils import get_mcp_config, fetch_access_token, create_streamable_http_transport, get_full_tools_list
+from logging_config import get_logger
 
 # Configure logging
 logger = get_logger('layout_agent')

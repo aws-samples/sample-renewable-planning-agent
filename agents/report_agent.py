@@ -6,10 +6,10 @@ from strands import Agent, tool
 from strands_tools import current_time
 from strands.handlers.callback_handler import PrintingCallbackHandler
 
-from agents.tools.report_tools import create_pdf_report_with_images, create_report_charts
-from agents.prompts.report_prompt import REPORT_AGENT_SYSTEM_PROMPT
-from agents.tools.shared_tools import list_project_files, load_project_data, get_latest_images, analyze_simulation_results
-from agents.logging_config import get_logger
+from tools.report_tools import create_pdf_report_with_images, create_report_charts
+from prompts.report_prompt import REPORT_AGENT_SYSTEM_PROMPT
+from tools.shared_tools import list_project_files, load_project_data, get_latest_images, analyze_simulation_results
+from logging_config import get_logger
 
 # Configure logging
 logger = get_logger('layout_agent')
