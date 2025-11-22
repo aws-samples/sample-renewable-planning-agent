@@ -102,7 +102,7 @@ root/
 2. **Layout Design**
 
    ```text
-   Create a 30MW wind farm at location lat:35.067482, lon:-101.395466 using IEA_Reference_3.4MW_130 turbines for project_id 1111_2222
+   Design a 30MW wind farm at location lat:35.067482, lon:-101.395466 using IEA_Reference_3.4MW_130 turbines for project_id 1111_2222
    ```
 
 3. **Energy Simulation**
