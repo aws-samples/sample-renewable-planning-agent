@@ -1,0 +1,7 @@
+templates:
+  - "**/*.yaml"
+  - "**/*.yml"
+  - "**/*.json"
+ignore_checks:
+  - E1010
+  - E3001

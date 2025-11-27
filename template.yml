@@ -11,6 +11,10 @@ Parameters:
     Type: String
     Description: ECR image URI for the agent - used by AgentCore runtime deployment
     Default: "REPLACED_BY_CI"
+  # AppImageUri:
+  #   Type: String
+  #   Description: ECR image URI for the app - used by ECS deployment
+  #   Default: "REPLACED_BY_CI"
 
 Resources:
   WindFarmToolLambda:
@@ -318,25 +322,25 @@ Resources:
                   - aws-marketplace:ViewSubscriptions
                 Resource: "*"  
 
-  WebApplication:
-    Type: AWS::ECS::ExpressGatewayService
-    Properties:
-      Cpu: 1024
-      Memory: 2048
-      ExecutionRoleArn: !GetAtt WebApplicationExecutionRole.Arn
-      InfrastructureRoleArn: !GetAtt WebApplicationInfrastructureRole.Arn
-      TaskRoleArn: !GetAtt WebApplicationTaskRole.Arn
-      HealthCheckPath: /health
-      PrimaryContainer: 
-        ContainerPort: 8080
-        Image: public.ecr.aws/d0w5h1n8/wind/wind-farm-app:latest
-      ScalingTarget: 
-        MinTaskCount: 1
-        MaxTaskCount: 1
-      ServiceName: wind-farm-app-service
-      Tags: 
-        - Key: Name
-          Value: wind-farm-app-service
+  # WebApplication:
+  #   Type: AWS::ECS::ExpressGatewayService
+  #   Properties:
+  #     Cpu: 1024
+  #     Memory: 2048
+  #     ExecutionRoleArn: !GetAtt WebApplicationExecutionRole.Arn
+  #     InfrastructureRoleArn: !GetAtt WebApplicationInfrastructureRole.Arn
+  #     TaskRoleArn: !GetAtt WebApplicationTaskRole.Arn
+  #     HealthCheckPath: /health
+  #     PrimaryContainer: 
+  #       ContainerPort: 8080
+  #       Image: !Ref AppImageUri
+  #     ScalingTarget: 
+  #       MinTaskCount: 1
+  #       MaxTaskCount: 1
+  #     ServiceName: wind-farm-app-service
+  #     Tags: 
+  #       - Key: Name
+  #         Value: wind-farm-app-service
 
 Outputs:
   GatewayUrl:
@@ -345,3 +349,6 @@ Outputs:
   RuntimeArn:
     Value: !GetAtt Runtime.AgentRuntimeArn
     Description: "AgentCore Runtime Arn"
+  # WebAppUrl:
+  #   Description: "Web Application URL"
+  #   Value: !Sub https://wind-farm-app-service.ecs.${AWS::Region}.on.aws/
