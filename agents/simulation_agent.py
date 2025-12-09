@@ -89,4 +89,4 @@ simulation_agent = Agent(
 @tool
 def simulation_agent_as_tool(query="No prompt found in input, please guide customer to create a json payload with prompt key") -> str:
     """Performs wind farm energy yield and wake effects simulations for a given project and turbine layout."""
-    return simulation_agent(query)
+    return str(simulation_agent(query))
