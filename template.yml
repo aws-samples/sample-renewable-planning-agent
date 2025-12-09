@@ -6,15 +6,33 @@ Parameters:
   ToolImageUri:
     Type: String
     Description: ECR image URI for the MCP tool target lambda function - used by AgentCore gateway deployment
-    Default: "REPLACED_BY_CI"
+
   AgentImageUri:
     Type: String
     Description: ECR image URI for the agent - used by AgentCore runtime deployment
-    Default: "REPLACED_BY_CI"
-  # AppImageUri:
-  #   Type: String
-  #   Description: ECR image URI for the app - used by ECS deployment
-  #   Default: "REPLACED_BY_CI"
+
+  AppImageUri:
+    Type: String
+    Description: ECR image URI for the app - used by ECS deployment
+
+  OverpassApiUrl:
+    Type: String
+    Description: Overpass API URL for terrain data queries
+  
+  NrelApiBaseUri:
+    Type: String
+    Description: Base URL for NREL API
+    Default: "http://developer.nrel.gov/api/wind-toolkit/v2/wind/wtk-bchrrr-v1-0-0-download.csv"
+  
+  NrelApiKey:
+    Type: String
+    Description: NREL API key
+    Default: "DEMO_KEY"
+  
+  NrelApiEmail:
+    Type: String
+    Description: NREL API email
+    Default: "nrg-workshops@amazon.com"
 
 Resources:
   WindFarmToolLambda:
@@ -26,16 +44,13 @@ Resources:
       MemorySize: 2048
       Architectures:
         - arm64
+      Environment:
+        Variables:
+          NREL_API_BASE_URI: !Ref NrelApiBaseUri
+          NREL_API_KEY: !Ref NrelApiKey
+          NREL_API_EMAIL: !Ref NrelApiEmail
       Policies:
         - AWSLambdaBasicExecutionRole
-        - Version: 2012-10-17
-          Statement:
-            - Effect: Allow
-              Action:
-                - ssm:GetParameter
-                - ssm:GetParameters
-                - ssm:GetParametersByPath
-              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
 
   GatewayRole:
     Type: AWS::IAM::Role
@@ -210,6 +225,7 @@ Resources:
         DISABLE_CALLBACK_HANDLER: "1"
         AWS_REGION: !Ref AWS::Region
         AWS_DEFAULT_REGION: !Ref AWS::Region
+        OVERPASS_API_URL: !Ref OverpassApiUrl
       NetworkConfiguration:
         NetworkMode: PUBLIC
       RoleArn: !GetAtt RuntimeRole.Arn
@@ -249,42 +265,29 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
 
-  WebApplicationInfrastructureRole:
+  WebApplicationAccessRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: 2012-10-17
         Statement:
           Effect: Allow
           Principal:
-            Service: ecs.amazonaws.com
+            Service: build.apprunner.amazonaws.com
           Action: sts:AssumeRole
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
 
-  WebApplicationExecutionRole:
+  WebApplicationInstanceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
             Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-
-  WebApplicationTaskRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
+              Service: tasks.apprunner.aws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: WebApplicationTaskPolicy
+        - PolicyName: WebApplicationPolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -322,33 +325,69 @@ Resources:
                   - aws-marketplace:ViewSubscriptions
                 Resource: "*"  
 
-  # WebApplication:
-  #   Type: AWS::ECS::ExpressGatewayService
-  #   Properties:
-  #     Cpu: 1024
-  #     Memory: 2048
-  #     ExecutionRoleArn: !GetAtt WebApplicationExecutionRole.Arn
-  #     InfrastructureRoleArn: !GetAtt WebApplicationInfrastructureRole.Arn
-  #     TaskRoleArn: !GetAtt WebApplicationTaskRole.Arn
-  #     HealthCheckPath: /health
-  #     PrimaryContainer: 
-  #       ContainerPort: 8080
-  #       Image: !Ref AppImageUri
-  #     ScalingTarget: 
-  #       MinTaskCount: 1
-  #       MaxTaskCount: 1
-  #     ServiceName: wind-farm-app-service
-  #     Tags: 
-  #       - Key: Name
-  #         Value: wind-farm-app-service
+  WebApplicationWebACL:
+    Type: "AWS::WAFv2::WebACL"
+    Properties:
+      Name: WindFarmAppWebAcl
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: True
+        CloudWatchMetricsEnabled: True
+        MetricName: WindFarmAppAclMetric
+      Rules:
+        - Name: RateLimitRule
+          Action:
+            Block: {}
+          Priority: 1
+          Statement:
+            RateBasedStatement:
+              Limit: 200
+              AggregateKeyType: IP
+              EvaluationWindowSec: 60
+          VisibilityConfig:
+            SampledRequestsEnabled: True
+            CloudWatchMetricsEnabled: True
+            MetricName: WindFarmAppRateLimitMetric
+
+  WebApplication:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: wind-farm-app
+      SourceConfiguration:
+        AuthenticationConfiguration:
+          AccessRoleArn: !GetAtt WebApplicationAccessRole.Arn
+        AutoDeploymentsEnabled: true
+        ImageRepository:
+          ImageIdentifier: !Ref AppImageUri
+          ImageRepositoryType: ECR
+          ImageConfiguration:
+            Port: 8080
+            RuntimeEnvironmentVariables:
+              - Name: PORT
+                Value: 8080
+      InstanceConfiguration:
+        Cpu: 1 vCPU
+        Memory: 3 GB
+        InstanceRoleArn: !GetAtt WebApplicationInstanceRole.Arn
+      Tags: 
+        - Key: Name
+          Value: wind-farm-app-service
+
+  WebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      WebACLArn: !GetAtt WebApplicationWebACL.Arn
+      ResourceArn: !GetAtt WebApplication.ServiceArn
 
 Outputs:
   GatewayUrl:
     Description: "Bedrock AgentCore Gateway URL"
     Value: !GetAtt WindAgentCoreGateway.GatewayUrl
   RuntimeArn:
-    Value: !GetAtt Runtime.AgentRuntimeArn
     Description: "AgentCore Runtime Arn"
-  # WebAppUrl:
-  #   Description: "Web Application URL"
-  #   Value: !Sub https://wind-farm-app-service.ecs.${AWS::Region}.on.aws/
+    Value: !GetAtt Runtime.AgentRuntimeArn
+  WebAppUrl:
+    Description: "Web Application URL"
+    Value: !GetAtt WebApplication.ServiceUrl
