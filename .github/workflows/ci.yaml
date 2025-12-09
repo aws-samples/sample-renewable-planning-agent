@@ -23,7 +23,9 @@ jobs:
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ROLE_NAME }}
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13' 
       - uses: aws-actions/setup-sam@v2
       - run: aws ecr create-repository --repository-name wind-dev-agent --region $AWS_REGION || true
       - run: aws ecr create-repository --repository-name wind-tools-lambda-image --region $AWS_REGION || true
