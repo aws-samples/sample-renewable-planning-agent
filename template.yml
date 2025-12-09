@@ -70,16 +70,16 @@ Resources:
               - Effect: Allow
                 Action: lambda:InvokeFunction
                 Resource: !GetAtt WindFarmToolLambda.Arn
-
               - Effect: Allow
                 Action:
-                  - bedrock-agentcore:*
-                  - bedrock:*
-                  - iam:PassRole
                   - secretsmanager:GetSecretValue
-                  - kms:Decrypt
-                Resource: "*"
-
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+              - Effect: Allow
+                Action:
+                  - bedrock-agentcore:GetWorkloadAccessToken
+                Resource:
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default"
+                  - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:workload-identity-directory/default/workload-identity/*"
   WindAgentCoreGateway:
     Type: AWS::BedrockAgentCore::Gateway
     Properties:
@@ -144,8 +144,9 @@ Resources:
                   - bedrock:InvokeModel
                   - bedrock:InvokeModelWithResponseStream
                   - bedrock:Retrieve
-                  - bedrock:RetrieveAndGenerate
-                Resource: "*"
+                Resource: 
+                  - !Sub "arn:aws:bedrock:*::foundation-model/*"
+                  - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - aws-marketplace:Subscribe
@@ -262,6 +263,17 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "wind-dev-agent-${AWS::AccountId}-storage"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
 
@@ -293,9 +305,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - bedrock:Invoke*
                   - bedrock-agentcore:*
-                Resource: "*"
+                Resource: 
+                - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - s3:GetObject

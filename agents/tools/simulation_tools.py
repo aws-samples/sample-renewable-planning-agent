@@ -218,7 +218,7 @@ def run_simplified_flow_map_simulation(simplified_conditions, turbines_geojson, 
         return flow_map, sim_result
 
     except Exception as e:
-        logger.error(f"Error in flow map simulation: {str(e)}")
+        logger.warning(f"Error in flow map simulation: {str(e)}")
         raise
 
 
@@ -413,7 +413,7 @@ def run_wake_simulation(wind_conditions: Dict, project_id: str, calculate_flow_m
         return results
     except Exception as e:
         error_msg = f"Error finalizing simulation results: {str(e)}"
-        logger.error(error_msg)
+        logger.warning(error_msg)
         raise Exception(error_msg)
 
 
@@ -481,7 +481,8 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
+
         generated_files.append(filename)
         plt.close()
 
@@ -499,7 +500,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -517,7 +518,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -532,7 +533,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -556,7 +557,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -575,7 +576,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -599,7 +600,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -621,7 +622,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
         generated_files.append(filename)
         plt.close()
 
@@ -637,7 +638,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             temp_file.write(csv_str.encode())   # Write CSV string to file
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
             print(f"===saving")
 
         generated_files.append(filename)
@@ -664,7 +665,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             temp_file.flush()  # Ensure data is written to disk
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            os.unlink(temp_file.name)
+            temp_file.close()
             print(f"===saving")
 
         logger.info(f"Generated {len(generated_files)} individual chart files")
