@@ -15,6 +15,8 @@ This project provides specialized AI agents that work together to analyze terrai
 
 ## Architecture
 
+![Deployment Architecture](./architecture.png)
+
 ### Agents
 
 - **Terrain Analysis Agent**: Analyzes geographic constraints and exclusion zones
@@ -22,6 +24,14 @@ This project provides specialized AI agents that work together to analyze terrai
 - **Simulation Agent**: Performs wake modeling and energy production calculations
 - **Report Agent**: Generates executive summaries and visualizations
 - **Multi-Agent**: Orchestrates the complete workflow
+
+### Web Application
+
+The web application is implemented with Python FastAPI and React frontend, and is deployed separately from the agents and tools.
+
+This is a sample frontend demonstrating agent interactions in the user interface, it does not implement project management and authentication/authorization features required for a production application.
+
+We recommend you to implement your own web experience with your desired authentication and authorization mechanisms.
 
 ### Key Technologies
 
@@ -85,6 +95,13 @@ The project uses AWS SAM (Serverless Application Model) for infrastructure deplo
 - SAM CLI installed
 - Docker for building container images
 
+### Recommendations
+
+This sample does not implement authentication and authorization mechanisms and guardrails for LLM interactions. These should be implemented according to each organization's requirements.
+
+- Use Amazon Bedrock Guardrails to protect against LLM based threats
+- Use Amazon Cognito or other authentication mechanisms for user management and authorization for web application
+
 ### Clone the repository
 
 ```bash
@@ -147,10 +164,6 @@ sam deploy --parameter-overrides \
 ### Automated Deployment via Github Actions
 
 Refer to the [Github Actions Workflow](.github/workflows/ci.yml) for automated deployment. Note that this requires you to create repository environment variables referred in the workflow.
-
-### Deployment Architecture
-
-![Deployment Architecture](./architecture.png)
 
 ## 📄 License
 
