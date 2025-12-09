@@ -58,7 +58,7 @@ jobs:
           push: true
           tags: "${{env.APP_IMAGE}}:${{env.IMAGE_TAG}},${{env.APP_IMAGE}}:latest"
           context: ./web_app
-          platforms: linux/arm64
+          platforms: linux/amd64
           provenance: false
           cache-from: type=registry,ref=${{env.APP_IMAGE}}:cache
           cache-to: type=registry,ref=${{env.APP_IMAGE}}:cache,mode=max
