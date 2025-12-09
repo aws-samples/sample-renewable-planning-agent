@@ -26,6 +26,10 @@ COPY --from=frontend-build /app/frontend/dist ./static
 # Set default AWS region (can be overridden)
 ENV AWS_DEFAULT_REGION=us-west-2
 
+RUN useradd -m -u 1000 runner
+USER runner
+HEALTHCHECK CMD netstat -an | grep "8080"  
+
 # Expose port
 EXPOSE 8080
 

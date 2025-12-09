@@ -374,5 +374,4 @@ if os.path.exists("static"):
 if __name__ == "__main__":
     import uvicorn
 
-    # nosec B404: bind to 0.0.0.0
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
+    uvicorn.run(app, port=8080, log_level="info")

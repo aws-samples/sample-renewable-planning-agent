@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN useradd -m -u 1000 runner
+USER runner
+HEALTHCHECK CMD netstat -an | grep "8080"
+
 # Copy source code
 COPY . .
 
