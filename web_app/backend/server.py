@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 import boto3
@@ -20,15 +19,6 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Enable CORS for all origins (since no auth)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # AWS clients
 REGION = os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
 s3_client = boto3.client('s3', region_name=REGION)
@@ -40,6 +30,8 @@ agentcore_client = boto3.client(
 )
 
 # Configuration
+
+
 def get_ssm_parameter(param_name: str) -> str:
     try:
         response = ssm_client.get_parameter(
@@ -52,41 +44,44 @@ def get_ssm_parameter(param_name: str) -> str:
         logger.error(f"Error getting SSM parameter {param_name}: {e}")
         return ''
 
+
 S3_BUCKET_NAME = get_ssm_parameter('/wind-farm-assistant/s3-bucket-name')
 
 # S3 Asset Management
+
+
 async def get_project_assets(project_id: str) -> dict:
     if not S3_BUCKET_NAME:
         logger.error("S3 bucket name not configured")
         return {'assets': [], 'geojson_files': [], 'total_count': 0}
-    
+
     try:
         response = s3_client.list_objects_v2(
             Bucket=S3_BUCKET_NAME,
             Prefix=f"{project_id}/"
         )
-        
+
         assets = []
         geojson_files = []
-        
+
         for obj in response.get('Contents', []):
             key = obj['Key']
             parts = key.split('/')
             if len(parts) < 2:
                 continue
-            
+
             filename = parts[-1]
-            
+
             if key.endswith(('.png', '.geojson', '.pdf', '.html')):
                 assets.append({
                     'path': '/'.join(parts[1:]),
                     'size': obj['Size'],
                     'modified': obj['LastModified'].isoformat()
                 })
-                
+
                 if key.endswith('.geojson'):
                     geojson_files.append(filename)
-        
+
         return {
             'assets': assets,
             'geojson_files': geojson_files,
@@ -96,15 +91,16 @@ async def get_project_assets(project_id: str) -> dict:
         logger.error(f"Error getting assets for project {project_id}: {e}")
         return {'assets': [], 'geojson_files': [], 'total_count': 0}
 
+
 def process_sub_agent_events(event: dict, current_type_state: dict = {}) -> str:
     if current_type_state is None:
         current_type_state = {'current_type': None}
-    
+
     current_buffer = ''
-    
+
     if not isinstance(event, dict):
         return current_buffer
-        
+
     # Check for tool use start
     if 'event' in event and 'contentBlockStart' in event['event']:
         start_block = event['event']['contentBlockStart'].get('start', {})
@@ -127,7 +123,7 @@ def process_sub_agent_events(event: dict, current_type_state: dict = {}) -> str:
             new_type = "reasoning"
         elif 'toolUse' in delta:
             new_type = "toolUse"
-        
+
         if new_type != current_type_state['current_type']:
             if new_type == "text":
                 current_buffer = "\n\n💬 Response: \n\n"
@@ -143,38 +139,41 @@ def process_sub_agent_events(event: dict, current_type_state: dict = {}) -> str:
             current_buffer += delta['reasoningContent']['text']
         elif 'toolUse' in delta and 'input' in delta['toolUse']:
             current_buffer += delta['toolUse']['input']
-        
+
     return current_buffer
+
 
 async def generate_response(message: str, project_id: str = ''):
     """Stream response from AgentCore deployed agent"""
-    
+
     # Get AgentCore runtime ARN from SSM parameter
-    agentcore_runtime_arn = get_ssm_parameter('/wind-farm-assistant/agentcore-runtime-arn')
-    if not agentcore_runtime_arn: # Return an error if AgentCore runtime ARN is not configured
+    agentcore_runtime_arn = get_ssm_parameter(
+        '/wind-farm-assistant/agentcore-runtime-arn')
+    if not agentcore_runtime_arn:  # Return an error if AgentCore runtime ARN is not configured
         error_msg = "AgentCore runtime ARN not configured in SSM parameter /wind-farm-assistant/agentcore-runtime-arn"
         logger.error(error_msg)
         yield json.dumps({"content": error_msg, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
         return
 
     try:
-        prompt = f'{message}. Use project_id {project_id}' # Update prompt to include project_id
-        
+        # Update prompt to include project_id
+        prompt = f'{message}. Use project_id {project_id}'
+
         # Invoke agentcore with boto3 client
         boto3_response = agentcore_client.invoke_agent_runtime(
             agentRuntimeArn=agentcore_runtime_arn,
             qualifier="DEFAULT",
             payload=json.dumps({"prompt": prompt})
         )
-        
+
         # Process streaming response
         if "text/event-stream" in boto3_response.get("contentType", ""):
             current_buffer = ""
             current_type = ""
-            
+
             try:
                 streaming_body = boto3_response["response"]
-                
+
                 for line in streaming_body.iter_lines(chunk_size=1024):
                     if line:
                         line_decoded = line.decode("utf-8")
@@ -182,21 +181,22 @@ async def generate_response(message: str, project_id: str = ''):
                             line_json = line_decoded[6:]
                             try:
                                 # Handle string-wrapped JSON
-                                if line_json.startswith('"{'): 
-                                    line_json = line_json.strip('"').replace("'", '"')
-                                
+                                if line_json.startswith('"{'):
+                                    line_json = line_json.strip(
+                                        '"').replace("'", '"')
+
                                 data = json.loads(line_json)
-                                
+
                                 # Check for error responses
                                 if 'error' in data:
                                     error_msg = f"AgentCore Error: {data['error']}"
                                     yield json.dumps({"content": error_msg, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
                                     return
-                                
+
                                 # Skip init/start events
                                 if any(key in data for key in ['init_event_loop', 'start', 'start_event_loop']):
                                     continue
-                                
+
                                 # Check for tool use start
                                 if 'event' in data and 'contentBlockStart' in data['event']:
                                     if 'toolUse' in data['event']['contentBlockStart']['start']:
@@ -208,7 +208,7 @@ async def generate_response(message: str, project_id: str = ''):
                                         yield json.dumps({"content": current_buffer, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
                                         current_buffer = ""
                                         continue
-                                
+
                                 # Check for metadata (end of section)
                                 if 'event' in data and 'metadata' in data['event']:
                                     if current_buffer:
@@ -216,11 +216,11 @@ async def generate_response(message: str, project_id: str = ''):
                                     current_buffer = ""
                                     current_type = ""
                                     continue
-                                
+
                                 # Check for content
                                 if 'event' in data and 'contentBlockDelta' in data['event']:
                                     delta = data['event']['contentBlockDelta']['delta']
-                                    
+
                                     new_type = ""
                                     if 'text' in delta:
                                         new_type = "text"
@@ -228,7 +228,7 @@ async def generate_response(message: str, project_id: str = ''):
                                         new_type = "reasoning"
                                     elif 'toolUse' in delta:
                                         new_type = "toolUse"
-                                    
+
                                     if new_type != current_type:
                                         if current_buffer:
                                             yield json.dumps({"content": current_buffer, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
@@ -240,7 +240,7 @@ async def generate_response(message: str, project_id: str = ''):
                                             yield json.dumps({"content": section_header, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
                                         current_buffer = ""
                                         current_type = new_type
-                                    
+
                                     if 'text' in delta:
                                         content = delta['text']
                                         yield json.dumps({"content": content, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
@@ -250,25 +250,24 @@ async def generate_response(message: str, project_id: str = ''):
                                     elif 'toolUse' in delta and 'input' in delta['toolUse']:
                                         content = delta['toolUse']['input']
                                         yield json.dumps({"content": content, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
-                            
+
                             except json.JSONDecodeError:
                                 continue
-                        
+
                         # Small delay at end of each line processing
                         await asyncio.sleep(0.05)
-                
+
                 streaming_body.close()
-            
+
             except Exception as e:
                 logger.error(f"Error processing streaming response: {e}")
                 yield json.dumps({"content": f"Error processing response: {str(e)}", "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
-        
 
-    
     except Exception as e:
         error_msg = f"Error calling AgentCore agent: {str(e)}"
         logger.error(error_msg)
         yield json.dumps({"content": error_msg, "type": "response", "subagent": False, "subagent_name": ""}) + "\n"
+
 
 @app.post("/chat")
 def chat(data: dict):
@@ -276,10 +275,11 @@ def chat(data: dict):
     message = data.get("message", "")
     project_id = str(data.get("project_id"))
     is_first_message = data.get("is_first_message", False)
-    logger.info(f"Chat request - Project: {project_id}, Message length: {len(message)}, First message: {is_first_message}")
-    
+    logger.info(
+        f"Chat request - Project: {project_id}, Message length: {len(message)}, First message: {is_first_message}")
+
     return StreamingResponse(
-        generate_response(message, project_id), 
+        generate_response(message, project_id),
         media_type="application/json",
         headers={
             "Cache-Control": "no-cache",
@@ -288,11 +288,11 @@ def chat(data: dict):
     )
 
 
-
 @app.get("/projects/{username}")
 async def get_projects(username: str):
     """Get projects for a user - no auth required"""
     return PROJECTS_DB.get(username, [])
+
 
 @app.get("/project/{project_id}/info")
 async def get_project_info(project_id: str):
@@ -303,26 +303,29 @@ async def get_project_info(project_id: str):
                 return JSONResponse(content=project)
     return JSONResponse(content={'error': 'Project not found'}, status_code=404)
 
+
 @app.get("/projects/{project_id}/assets")
 async def get_assets_endpoint(project_id: str):
     assets = await get_project_assets(project_id)
     return JSONResponse(content=assets)
 
+
 @app.get("/projects/{project_id}/{path:path}")
 async def get_asset(project_id: str, path: str):
     if not S3_BUCKET_NAME:
         return JSONResponse(content={'error': 'S3 bucket not configured'}, status_code=500)
-        
+
     try:
         filename = path.split('/')[-1]
-        
+
         # If path already includes agent folder, use it directly
         if '/' in path:
             key = f"{project_id}/{path}"
         else:
             # Search for file in S3 by listing all objects with the filename
             try:
-                response = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix=f"{project_id}/")
+                response = s3_client.list_objects_v2(
+                    Bucket=S3_BUCKET_NAME, Prefix=f"{project_id}/")
                 key = None
                 for obj in response.get('Contents', []):
                     if obj['Key'].endswith(f"/{filename}"):
@@ -333,14 +336,14 @@ async def get_asset(project_id: str, path: str):
             except Exception as e:
                 logger.error(f"Error listing S3 objects: {e}")
                 return JSONResponse(content={'error': 'Failed to search for file'}, status_code=500)
-        
+
         try:
             response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=key)
             content = response['Body'].read()
         except Exception as e:
             logger.error(f"Error getting S3 object {key}: {e}")
             return JSONResponse(content={'error': 'Failed to retrieve file'}, status_code=404)
-        
+
         if filename.endswith('.pdf'):
             return Response(content=content, media_type="application/pdf", headers={"Content-Disposition": "inline"})
         elif filename.endswith('.png'):
@@ -358,6 +361,7 @@ async def get_asset(project_id: str, path: str):
     except Exception as e:
         logger.error(f"Unexpected error in get_asset: {e}")
         return JSONResponse(content={'error': 'Internal server error'}, status_code=500)
+
 
 @app.get("/health")
 async def health_check():
