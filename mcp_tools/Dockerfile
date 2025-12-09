@@ -4,8 +4,6 @@ FROM public.ecr.aws/lambda/python:3.12
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
-RUN useradd -m -u 1000 runner
-USER runner
 HEALTHCHECK CMD netstat -an | grep "8080"
 
 # Copy function code

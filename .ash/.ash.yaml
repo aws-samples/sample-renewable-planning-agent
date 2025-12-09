@@ -3,14 +3,11 @@ project_name: renewable-planning-agent
 global_settings:
   severity_threshold: MEDIUM
   ignore_paths:
-    - path: '.ash/.ash.yml'
+    - path: '.ash/*'
       reason: Ash config
     - path: '.github/workflows/*'
       reason: GitHub Actions
-  suppressions: 
-    - path: template.yml
-      rule_id: SECRET-SECRET-KEYWORD
-      reason: False positive.
+  suppressions: []
 fail_on_findings: true
 ash_plugin_modules: []
 external_reports_to_include: []
