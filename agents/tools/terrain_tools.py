@@ -416,6 +416,8 @@ def save_analysis_results(geojson_data, latitude, longitude, project_id):
         # Save HTML map to temp file and use storage utility
         with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_file:
             m.save(temp_file.name)
+            temp_file.flush()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name,
                 project_id,
@@ -423,7 +425,6 @@ def save_analysis_results(geojson_data, latitude, longitude, project_id):
                 "file_copy",
                 "terrain_agent"
             )
-            temp_file.flush()
             temp_file.close()
 
         # Create and save PNG image using satellite imagery
@@ -529,7 +530,8 @@ def save_analysis_results(geojson_data, latitude, longitude, project_id):
                     plt.savefig(temp_file.name, dpi=250,
                                 bbox_inches='tight', facecolor='white')
                     plt.close()
-
+                    temp_file.flush()
+                    # ok:tempfile-without-flush
                     save_file_with_storage(
                         temp_file.name,
                         project_id,
@@ -537,7 +539,7 @@ def save_analysis_results(geojson_data, latitude, longitude, project_id):
                         "file_copy",
                         "terrain_agent"
                     )
-                    temp_file.flush()
+
                     temp_file.close()
             else:
                 logger.warning(

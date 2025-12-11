@@ -481,8 +481,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
 
         generated_files.append(filename)
@@ -502,8 +504,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
@@ -521,6 +525,7 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
 
@@ -538,8 +543,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
@@ -564,8 +571,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
@@ -585,8 +594,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
@@ -611,8 +622,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
@@ -635,8 +648,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
@@ -653,8 +668,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             temp_file.write(csv_str.encode())   # Write CSV string to file
             temp_file.flush()
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
             print(f"===saving")
 
@@ -681,8 +698,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             json.dump(serializable_summary, temp_file, indent=4)
             temp_file.flush()  # Ensure data is written to disk
             temp_file.close()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
             print(f"===saving")
 

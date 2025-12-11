@@ -195,6 +195,7 @@ def create_pdf_report_with_images(project_id: str, markdown_content: str, image_
         with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_file:
             weasyprint.HTML(string=styled_html).write_pdf(temp_file.name)
             temp_file.flush()
+            # ok:tempfile-without-flush
             temp_filepath = temp_file.name
 
             # Save using storage utilities - save in report_agent folder

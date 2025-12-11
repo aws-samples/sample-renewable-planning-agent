@@ -1668,6 +1668,7 @@ def create_layout_map(
             plt.savefig(temp_file.name, dpi=250,
                         bbox_inches='tight', facecolor='white')
             temp_file.flush()
+            # ok:tempfile-without-flush
             save_file_with_storage(
                 temp_file.name,
                 project_id,
@@ -1675,6 +1676,7 @@ def create_layout_map(
                 "file_copy",
                 "layout_agent"
             )
+            # ok:tempfile-without-flush
             os.unlink(temp_file.name)
 
         # Return image as bytes
