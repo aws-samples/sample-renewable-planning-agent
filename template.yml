@@ -300,9 +300,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - bedrock-agentcore:*
+                  - bedrock-agentcore:ListAgentRuntimeEndpoints
+                  - bedrock-agentcore:ListAgentRuntimes
+                  - bedrock-agentcore:ListAgentRuntimeVersions
+                  - bedrock-agentcore:GetAgentRuntime
+                  - bedrock-agentcore:GetAgentRuntimeEndpoint
+                  - bedrock-agentcore:InvokeAgentRuntime
+                  - bedrock-agentcore:InvokeAgentRuntimeForUser
+                  - bedrock-agentcore:InvokeAgentRuntimeWithWebSocketStream
                 Resource: 
-                - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:*"
+                - !Sub "arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/*"
               - Effect: Allow
                 Action:
                   - s3:GetObject

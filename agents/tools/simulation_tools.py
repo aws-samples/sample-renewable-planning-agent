@@ -479,9 +479,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "aep_distribution.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
 
         generated_files.append(filename)
         plt.close()
@@ -498,9 +500,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "wake_map.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
 
@@ -516,9 +520,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "wind_rose.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+
         generated_files.append(filename)
         plt.close()
 
@@ -531,9 +536,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "aep_per_turbine.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
 
@@ -555,9 +562,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "wake_losses.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
 
@@ -574,9 +583,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "wind_speed_distribution.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
 
@@ -598,9 +609,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "power_curve.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
 
@@ -620,9 +633,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "aep_vs_windspeed.png"
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             plt.savefig(temp_file.name, dpi=150, bbox_inches='tight')
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
         generated_files.append(filename)
         plt.close()
 
@@ -636,9 +651,11 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
         filename = "raw_output_data.csv"
         with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as temp_file:
             temp_file.write(csv_str.encode())   # Write CSV string to file
+            temp_file.flush()
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
             print(f"===saving")
 
         generated_files.append(filename)
@@ -663,9 +680,10 @@ def generate_charts_and_csv(project_id: str, simulation_id: str) -> Dict:
             # Serialize dict to JSON and write to file
             json.dump(serializable_summary, temp_file, indent=4)
             temp_file.flush()  # Ensure data is written to disk
+            temp_file.close()
             save_file_with_storage(
                 temp_file.name, project_id, filename, "file_copy", "simulation_agent")
-            temp_file.close()
+            os.unlink(temp_file.name)
             print(f"===saving")
 
         logger.info(f"Generated {len(generated_files)} individual chart files")

@@ -423,7 +423,8 @@ def save_analysis_results(geojson_data, latitude, longitude, project_id):
                 "file_copy",
                 "terrain_agent"
             )
-            os.unlink(temp_file.name)
+            temp_file.flush()
+            temp_file.close()
 
         # Create and save PNG image using satellite imagery
         try:
@@ -536,7 +537,8 @@ def save_analysis_results(geojson_data, latitude, longitude, project_id):
                         "file_copy",
                         "terrain_agent"
                     )
-                    os.unlink(temp_file.name)
+                    temp_file.flush()
+                    temp_file.close()
             else:
                 logger.warning(
                     f"Failed to get satellite imagery: HTTP {response.status_code}")
