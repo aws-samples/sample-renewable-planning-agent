@@ -134,6 +134,7 @@ Resources:
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AWSMarketplaceManageSubscriptions
       Policies:
         - PolicyName: AgentCoreRuntimePolicy
           PolicyDocument:
@@ -147,12 +148,6 @@ Resources:
                 Resource: 
                   - !Sub "arn:aws:bedrock:*::foundation-model/*"
                   - !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:*"
-              - Effect: Allow
-                Action:
-                  - aws-marketplace:Subscribe
-                  - aws-marketplace:ViewSubscriptions
-                  - aws-marketplace:Unsubscribe
-                Resource: "*"
               - Effect: Allow
                 Action:
                   - ecr:BatchGetImage
@@ -332,12 +327,6 @@ Resources:
                 Resource: 
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/apprunner/wind-farm-app/*"
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:log-stream:*"
-              - Effect: Allow
-                Action:
-                  - aws-marketplace:Subscribe
-                  - aws-marketplace:Unsubscribe
-                  - aws-marketplace:ViewSubscriptions
-                Resource: "*"  
 
   WebApplicationWebACL:
     Type: "AWS::WAFv2::WebACL"
