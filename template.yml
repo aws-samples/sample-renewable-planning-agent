@@ -37,6 +37,9 @@ Parameters:
 Resources:
   WindFarmToolLambda:
     Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_117: No VPC required
+    # checkov:skip=CKV_AWS_115: No Concurrency limit is required
+    # checkov:skip=CKV_AWS_116: No dead-letter queue required, sync invocation pattern
     Properties:
       ImageUri: !Ref ToolImageUri
       PackageType: Image
@@ -256,6 +259,7 @@ Resources:
 
   WindAgentsStorageBucket:
     Type: AWS::S3::Bucket
+    # checkov:skip=CKV_AWS_18: No access logging required, non-public bucket only accessed via webapp
     Properties:
       BucketName: !Sub "wind-dev-agent-${AWS::AccountId}-storage"
       PublicAccessBlockConfiguration:
