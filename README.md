@@ -1,29 +1,20 @@
 # Wind Farm Planning Assistant
 
-An AI-powered multi-agent system for comprehensive wind farm development, from site analysis to energy production simulation.
+This project is an AI-powered multi-agent system for which specialized AI agents that work together to analyze terrain, design optimal turbine layouts, and simulate wind farm performance using Amazon Bedrock and advanced wind modeling tools.
 
-## Overview
 
-This project provides specialized AI agents that work together to analyze terrain, design optimal turbine layouts, and simulate wind farm performance using Amazon Bedrock and advanced wind modeling tools.
+### Agents
 
-## Features
-
-- **🗺️ Terrain Analysis**: Identify un-buildable areas and exclusion zones
-- **📐 Layout Optimization**: Design optimal turbine placements with safety setbacks
-- **⚡ Energy Simulation**: Calculate annual energy production and wake effects
-- **📊 Executive Reports**: Generate comprehensive analysis reports with visualizations
+- **Planning-Assistant**: Orchestrates the complete workflow
+- **Terrain Analysis Agent**: Analyzes geographic constraints and provides a geojson of builable land
+- **Layout Agent**: Places turbines while considering terrain and spacing requirements
+- **Simulation Agent**: Performs wake modeling and energy production calculations
+- **Report Agent**: Generates executive summaries and visualizations
+![High-level Concept](./high-level.png)
 
 ## Architecture
 
 ![Deployment Architecture](./architecture.png)
-
-### Agents
-
-- **Terrain Analysis Agent**: Analyzes geographic constraints and exclusion zones
-- **Layout Agent**: Designs optimal turbine layouts considering terrain and regulations
-- **Simulation Agent**: Performs wake modeling and energy production calculations
-- **Report Agent**: Generates executive summaries and visualizations
-- **Multi-Agent**: Orchestrates the complete workflow
 
 ### Web Application
 
@@ -33,10 +24,14 @@ This is a sample frontend demonstrating agent interactions in the user interface
 
 We recommend you to implement your own web experience with your desired authentication and authorization mechanisms.
 
+![WebApp](./webapp.png)
+
+
 ### Key Technologies
 
 - **Amazon Bedrock**: Claude Sonnet 4 for AI reasoning
 - **Amazon Bedrock AgentCore**: Secure scalable runtime for agent deployment
+- **Amazon S3 Vectors**: Knowledge base using object storage
 - **Strands Agents**: Agent development framework
 - **MCP (Model Context Protocol)**: Tool integration
 - **PyWake**: Advanced wake modeling and yield simulation
@@ -91,9 +86,9 @@ The project uses AWS SAM (Serverless Application Model) for infrastructure deplo
 ### Prerequisites
 
 - AWS Account with appropriate permissions
-- AWS CLI configured
-- SAM CLI installed
-- Docker for building container images
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) configured 
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) installed 
+- [Docker](https://www.docker.com/get-started/) for building container images
 
 ### Recommendations
 
@@ -116,7 +111,7 @@ Following environment variables are required:
 - `AWS_REGION`: Target AWS region (this sample supports us-west-2 region)
 - `AWS_ACCOUNT_ID`: Your AWS account ID
 - `AWS_ROLE_NAME`: IAM role for GitHub Actions OIDC
-- `OVERPASS_API_URL`: Overpass API Url - see docs at: [OpenStreetMap Wiki](https://wiki.openstreetmap.org/wiki/Overpass_API)
+- `OVERPASS_API_URL`: Overpass API instance Url - see docs at: [OpenStreetMap Wiki](https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances)
 - `NREL_API_BASE_URL`: NREL API base URL - see docs at: [NREL Developer Docs](https://developer.nrel.gov/docs/)
 - `NREL_API_KEY`: NREL API key - you can obtain one at: [NREL Developer Portal](https://developer.nrel.gov/signup/)
 - `NREL_API_EMAIL`: NREL API email you used to register for the API key
