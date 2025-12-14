@@ -12,7 +12,6 @@ An AI-powered multi-agent system with specialized agents that work together to a
 - [Additional Resources](#additional-resources)
 - [Acknowledgements](#acknowledgments)
 
-
 ## Features
 
 - **Intelligent Terrain Analysis**: Automated geographic constraint analysis with buildable land identification
@@ -70,16 +69,13 @@ An AI-powered multi-agent system with specialized agents that work together to a
 
 ![Deployment Architecture](./architecture.png)
 
-
 ### Web Application
 
 The web application is implemented with Python FastAPI and React frontend, deployed separately from the agents and tools.
 
-> **Note**: This is a sample frontend demonstrating agent interactions. It does not implement project management, authentication, or authorization features required for production use. Implement your own web experience with appropriate security mechanisms.
+> **Note**: This is a sample frontend demonstrating agent interactions. It does not implement project management, authentication, or authorization features required for production use. We recommend to implement your own user experience with appropriate authentication mechanisms and integrations.
 
 ![WebApp](./webapp.png)
-
-
 
 ### Key Technologies
 
@@ -106,23 +102,23 @@ root/
 └── web_app/                     # Web application interface
 ```
 
-
 ## Deployment
 
 The project uses AWS SAM (Serverless Application Model) for infrastructure deployment.
 
 ### Prerequisites
 
-- **AWS Account** with appropriate permissions 
+- **AWS Account** with appropriate permissions
 - **[AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)** configured
 - **[AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)**  installed
 - **[Docker](https://www.docker.com/get-started/)** for building container images
 
 ### Security Recommendations
 
-> **⚠️ Important**: This sample does not implement authentication, authorization, or LLM guardrails. Implement these according to your organization's requirements before production use.
+> **⚠️ Important**: This sample does not implement authentication, authorization, or LLM guardrails. Implement these according to your organization's requirements if you intend to develop further for production use.
 
 **Recommended security measures:**
+
 - **Amazon Bedrock Guardrails**: Protect against LLM-based threats
 - **Amazon Cognito**: User management and authorization
 - **VPC Configuration**: Network isolation for sensitive workloads
@@ -142,7 +138,6 @@ Create a `.env` file with the following required variables:
 - `NREL_API_EMAIL`: NREL API email you used to register for the API key
 
 ### Manual Deployment
-
 
 Replace the environment variable values and execute the following commands:
 
@@ -187,6 +182,7 @@ sam deploy --parameter-overrides \
 Refer to the [GitHub Actions Workflow](.github/workflows/ci.yml) for automated deployment.
 
 **Required repository secrets:**
+
 - `AWS_ACCOUNT_ID`
 - `AWS_REGION`
 - `NREL_API_KEY`
@@ -216,7 +212,6 @@ aws ecr batch-delete-image --repository-name wind-farm-app --image-ids imageTag=
 - **SAM Deploy Failed**: Verify all environment variables are set correctly
 - **API Errors**: Check NREL API key is valid and has sufficient quota
 
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -229,6 +224,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [**PyWake**](https://topfarm.pages.windenergy.dtu.dk/PyWake/) - Wake modeling techniques
 
 **Data Sources:**
+
 - [**NREL Wind Toolkit**](https://developer.nrel.gov/docs/wind/wind-toolkit/wtk-download/) - Wind resource data
 - [**NREL Turbine Models**](https://nrel.github.io/turbine-models/) - Turbine specifications
 - [**Overpass API**](https://wiki.openstreetmap.org/wiki/Overpass_API) - OpenStreetMap features
