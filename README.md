@@ -136,7 +136,7 @@ Create a `.env` file with the following required variables:
 - `NREL_API_BASE_URL`: NREL API base URL - see docs at: [NREL Developer Docs](https://developer.nrel.gov/docs/)
 - `NREL_API_KEY`: NREL API key - you can obtain one at: [NREL Developer Portal](https://developer.nrel.gov/signup/)
 - `NREL_API_EMAIL`: NREL API email you used to register for the API key
-- [OPTIONAL]`KNOWLEDGE_BASE_ID`: optional knowledge base ID to retrieve setbacks in terrain agent (can also be given in user prompt) - if none provide, default setbacks from the system prompt are used. 
+- [OPTIONAL]`KNOWLEDGE_BASE_ID`: optional knowledge base ID to retrieve setbacks used by terrain agent; if no valid ID is given, the default setbacks given in the agent's system prompt are used. 
 
 
 ### Manual Deployment
