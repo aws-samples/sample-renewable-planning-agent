@@ -25,7 +25,7 @@ An AI-powered multi-agent system with specialized agents that work together to a
 ## Agents
 
 - **Planning Assistant**: Orchestrates the complete workflow
-- **Terrain Analysis Agent**: Analyzes geographic constraints and provides GeoJSON of buildable land
+- **Terrain Agent**: Analyzes geographic constraints and provides GeoJSON of buildable land
 - **Layout Agent**: Places turbines while considering terrain and spacing requirements
 - **Simulation Agent**: Performs wake modeling and energy production calculations
 - **Report Agent**: Generates executive summaries and visualizations
@@ -136,6 +136,8 @@ Create a `.env` file with the following required variables:
 - `NREL_API_BASE_URL`: NREL API base URL - see docs at: [NREL Developer Docs](https://developer.nrel.gov/docs/)
 - `NREL_API_KEY`: NREL API key - you can obtain one at: [NREL Developer Portal](https://developer.nrel.gov/signup/)
 - `NREL_API_EMAIL`: NREL API email you used to register for the API key
+- [OPTIONAL]`KNOWLEDGE_BASE_ID`: optional knowledge base ID to retrieve setbacks used by terrain agent; if no valid ID is given, the default setbacks given in the agent's system prompt are used. 
+
 
 ### Manual Deployment
 
@@ -176,18 +178,6 @@ sam deploy --parameter-overrides \
   --capabilities CAPABILITY_IAM
 
 ```
-
-### Automated Deployment via GitHub Actions
-
-Refer to the [GitHub Actions Workflow](.github/workflows/ci.yml) for automated deployment.
-
-**Required repository secrets:**
-
-- `AWS_ACCOUNT_ID`
-- `AWS_REGION`
-- `NREL_API_KEY`
-- `NREL_API_EMAIL`
-- `OVERPASS_API_URL`
 
 ### Cleanup
 
