@@ -26,7 +26,7 @@ from logging_config import get_logger
 logger = get_logger('layout_agent')
 region_name = os.environ.get('AWS_REGION', 'us-west-2')
 model_id = os.environ.get(
-    'MODEL_ID', 'us.anthropic.claude-sonnet-4-20250514-v1:0')
+    'MODEL_ID', 'us.anthropic.claude-sonnet-4-6')
 
 logger.info(
     f"Initializing layout_agent with region: {region_name}, model: {model_id}")
