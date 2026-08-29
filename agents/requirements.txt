@@ -10,7 +10,7 @@ termcolor==3.2.0
 turbine-models==0.2.1
 folium==0.20.0
 shapely==2.1.2
-geopandas==1.1.1
+geopandas==1.1.2
 py-wake==2.6.11
 ipykernel>=6.30.1
 networkx>=3.4.2
